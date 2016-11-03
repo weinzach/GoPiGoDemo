@@ -26,8 +26,8 @@ requirepackage curl
 sudo apt-get install -y build-essential
 
 #Grab Latest Version of NodeJS
-#curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
-#sudo apt-get install -y nodejs
+curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
+sudo apt-get install -y nodejs
 
 #Get GoPiGo Example Code
 git clone https://github.com/DexterInd/GoPiGo
