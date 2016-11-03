@@ -26,8 +26,8 @@ requirepackage curl
 sudo apt-get install -y build-essential
 
 #Grab Latest Version of NodeJS
-curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
-sudo apt-get install -y nodejs
+#curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
+#sudo apt-get install -y nodejs
 
 #Get GoPiGo Example Code
 git clone https://github.com/DexterInd/GoPiGo
@@ -35,12 +35,16 @@ cd $PWD/GoPiGo/Setup
 #Install Requirements
 sudo bash install.sh
 
+cd ../Software/Python
+sudo python setup.py install
+
 #Install Demo Dependencies
-
+cd ../../../
 cd $PWD/GoPiGoWebClient
-npm install
+sudo npm install
 
+cd ../
 cd $PWD/GoPiGoWebServer
-npm install
+sudo npm install
 
 echo "Setup Complete!"
