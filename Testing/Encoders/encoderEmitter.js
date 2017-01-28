@@ -1,15 +1,21 @@
 var robotName = "Sparky";
 
+var arg = process.argv.slice(2)[0];
+if(arg!=""){
+  robotName = arg;
+}
+
 var Gopigo   = require('./libs').Gopigo;
 var Commands = Gopigo.commands;
 var Robot = Gopigo.robot;
 var robot;
 
 var ready = 0;
+var testing = 0;
 
 var readline = require('readline');
 var now = new Date();
-var logfile_name = './log-' + now.getFullYear() + "-"+ now.getMonth() + "-" + now.getDay()+ "-" + now.getHours()+ "-" + now.getMinutes() +'.txt'
+var logfile_name = './logs/log-' + now.getFullYear() + "-"+ now.getMonth() + "-" + now.getDay()+ "-" + now.getHours()+ "-" + now.getMinutes() +'.txt'
 var fs = require('fs')
 var logger = fs.createWriteStream(logfile_name, {
   flags: 'a' // 'a' means appending (old data will be preserved)
@@ -18,9 +24,12 @@ logger.write("Encoder Log ("+now.toUTCString()+")"); //append header to log
 logger.write('\r\n'); //new line
 
 //Initialize Batman Subscriber using correct subnet
+
 //var Publisher = require('cote')({'broadcast':'10.0.255.255'}).Publisher;
 var Publisher = require('cote').Publisher;
-var channels = ['encoders'];
+
+var Subscriber = require('cote').Subscriber;
+//var Subscriber = require('cote')({'broadcast': '10.0.255.255'}).Subscriber;
 
 var ultrasonicPin = 15;
 
@@ -41,7 +50,6 @@ robot.on('init', function onInit(res) {
     console.log('GoPiGo Ready!');
     console.log('Starting Logging...');
     ready = 1;
-    encoderLogger();
   } else {
     console.log('Something went wrong during the init.')
   }
@@ -73,6 +81,29 @@ robot.on('criticalVoltage', function onCriticalVoltage(voltage) {
 })
 robot.init();
 
+var randomSubscriber = new Subscriber({
+    name: robotName,
+    // namespace: 'rnd',
+    subscribesTo: ['commands']
+});
+
+randomSubscriber.on('commands', function(req) {
+  console.log(req);
+	switch (req) {
+		case 0:
+			testing = 0;
+      var res = robot.motion.stop();
+			console.log('Stopping:' + res);
+      break;
+		case 1:
+			testing = 1;
+			var res = robot.motion.forward(false);
+			console.log('Moving forward:' + res);
+      break;
+	}
+});
+
+
 // Instantiate a new Publisher component.
 var randomPublisher = new Publisher({
     name: robotName,
@@ -83,7 +114,7 @@ var randomPublisher = new Publisher({
 // Wait for the publisher to find an open port and listen on it.
 randomPublisher.on('ready', function() {
     setInterval(function() {
-    if(ready==1){
+    if((ready==1)&&(testing==1)){
         var date = new Date();
 	var time = date.getTime();
  	var res1 = robot.encoders.read(0);
@@ -95,18 +126,12 @@ randomPublisher.on('ready', function() {
         // publish an event with arbitrary data at any time
         randomPublisher.publish('encUpdate', val);
 	}
-    }, 1000);
+}, 500);
 });
 
-function encoderLogger() {
-	if(ready>1){
-		var date = new Date();
-		var time = date.getTime();
- 		var res1 = robot.encoders.read(0);
-		var res2 = robot.encoders.read(1);
-    		console.log(time+","+res1+ ","+ res2);
-		logger.write(time+","+res1+ ","+ res2); //append to log
-		logger.write('\r\n'); //new line
-	}
-	setTimeout(encoderLogger, 1);
-}
+process.on('SIGINT', function() {
+    console.log("Ending Test....");
+    var res = robot.motion.stop()
+    console.log('Stopping:' + res);
+    process.exit();
+});
