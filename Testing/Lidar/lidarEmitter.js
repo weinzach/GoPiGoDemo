@@ -65,7 +65,7 @@ lidar.init().then(() => {
 }).then(info => {
     console.log('info: ', info);
 }).then(() => {
-    lidar.scan();
+    lidar.stopScan();
 });
 
 lidar.on('data', listener3 = function (data) {
@@ -75,7 +75,7 @@ lidar.on('data', listener3 = function (data) {
     req["name"] = robotName;
     req["latency"] = date.getTime();
     randomPublisher.publish('lidarUpdate', req);
-    var reqLog = JSON.stringify(req); // '{"name":"binchen"}'
+    var reqLog = JSON.stringify(req);
     logger.write(reqLog); //append to log
     logger.write('\r\n'); //new line
   }

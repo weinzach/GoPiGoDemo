@@ -37,7 +37,7 @@ var randomPublisher = new Publisher({
 randomSubscriber.on('lidarUpdate', function(req) {
     let latency = Math.abs(Date.now() - req.latency);
     req.latency = latency;
-    var data = JSON.stringify(req); // '{"name":"binchen"}'
+    var data = JSON.stringify(req);
     console.log('RECIEVED:', data);
     logger.write(data); //append to log
     logger.write('\r\n'); //new line
