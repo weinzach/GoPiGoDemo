@@ -11,9 +11,9 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 app.use(express.static('public'));
 
-//var Subscriber = require('cote').Subscriber;
+var Subscriber = require('cote').Subscriber;
 //Initialize Batman Subscriber using correct subnet
-var Subscriber = require('cote')({'broadcast':'10.0.255.255'}).Subscriber;
+//var Subscriber = require('cote')({'broadcast':'10.0.255.255'}).Subscriber;
 var channels = ['driveJames'];
 
 var ultrasonicPin = 15;
@@ -196,10 +196,10 @@ function checkStatus() {
         var ids = Object.keys(batSubscriber.discovery.nodes);
 	var coteList = [];
 	let status = 0;
-	for (i = 0; i < ids.length; i++) { 
+	for (i = 0; i < ids.length; i++) {
     		coteList.push(batSubscriber.discovery.nodes[ids[i]].advertisement.name);
 	}
-	for (i = 0; i < coteList.length; i++) { 
+	for (i = 0; i < coteList.length; i++) {
     		if(coteList[i]=="webServer"){ status = 1; }
 	}
 	if(status==0){
@@ -211,17 +211,17 @@ function checkStatus() {
 		ready = 0;
 	}
 	else{
-		ready = 1;	
+		ready = 1;
 	}
         checkStatus();
     }, 100);
 }
 
+function printEncoder() {
+    setTimeout(function () {
+        console.log(robot.encoders.read(0)+" "+robot.encoders.read(1));
+        printRobot();
+    }, 500);
+}
+
 checkStatus();
-
-
-
-
-
-
-

@@ -1,6 +1,6 @@
 var ready = 0;
-//var Publisher = require('cote').Publisher;
-var Publisher = require('cote')({'broadcast': '10.0.255.255'}).Publisher;
+var Publisher = require('cote').Publisher;
+//var Publisher = require('cote')({'broadcast': '10.0.255.255'}).Publisher;
 var express = require('express');
 var app = express();
 var http = require('http').Server(app);

@@ -25,12 +25,12 @@ var status = 0
 
 function toggleLed(e){
 	if(e=='l'){
-	if(lled==0){socket.emit('message','left led on');lled=1;}
-	else{socket.emit('message','left led off');lled=0;}
+	if(lled==0){sendMessage('left led on');lled=1;}
+	else{sendMessage('left led off');lled=0;}
 	}
 	else if(e=='r'){
-	if(rled==0){socket.emit('message','right led on');rled=1;}
-	else{socket.emit('message','right led off');rled=0;}
+	if(rled==0){sendMessage('right led on');rled=1;}
+	else{sendMessage('right led off');rled=0;}
 	}
 }
 
