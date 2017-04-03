@@ -1,12 +1,16 @@
 //Module dependencies.
-var mongoose = require('mongoose');
+var messenger = require('messenger');
 var config = require("./nodeConfig.json");
+
+client = messenger.createSpeaker(8000);
 
 var Gopigo = require('./libs').Gopigo;
 var Commands = Gopigo.commands;
 var Robot = Gopigo.robot;
 var robot;
 var ready = 0;
+var robotData = {};
+
 
 if (config.batman == true) {
     var Subscriber = require('cote')({
@@ -16,33 +20,10 @@ if (config.batman == true) {
     var Subscriber = require('cote').Subscriber;
 }
 
-//Connect to Database
-mongoose.connection.on('open', function(ref) {
-    console.log('Connected to mongo server.');
-});
-mongoose.connection.on('error', function(err) {
-    console.log('Could not connect to mongo server!');
-    console.log(err);
-});
-mongoose.connect('mongodb://localhost/goPiGo');
-var Schema = mongoose.Schema;
-
-//Data Schema
-var dataDetail = new Schema({
-    node_name: String,
-    data: Array
-}, {
-    collection: 'data'
-});
-
-//Create MongoDB models
-var dataDetails = mongoose.model('data', dataDetail);
-
 
 var channel = 'drive' + config.node_name;
 var channels = [channel];
-var robotData = {};
-var robotNode = {};
+var ta = {};
 var ultrasonicPin = 15;
 //var irreceiverPin = 8
 
@@ -88,6 +69,20 @@ robot.on('criticalVoltage', function onCriticalVoltage(voltage) {
 })
 robot.init()
 
+var LeftLedStat = false;
+var RightLedStat = false;
+var robotState = 0;
+
+function updateRobot() {
+    robotData.name = config.node_name;
+    robotData.type = config.robot_type;
+    var nodeData = {'leftLed': LeftLedStat,'rightLed': RightLedStat, 'robotState': robotState};
+    robotData.data = [nodeData];
+    client.request('robotData', robotData, function(data) {
+      console.log("Updating Robot Status...");
+    });
+}
+
 function handleAnswer(answer) {
     var message = ''
     switch (answer) {
@@ -95,114 +90,62 @@ function handleAnswer(answer) {
             robot.reset()
             break
         case 'left led on':
-            var res = robot.ledLeft.on()
-            console.log('Left led on::' + res)
-            break
+            var res = robot.ledLeft.on();
+            console.log('Left led on::' + res);
+            LeftLedStat = true;
+            break;
         case 'left led off':
-            var res = robot.ledLeft.off()
-            console.log('Left led off::' + res)
-            break
+            var res = robot.ledLeft.off();
+            console.log('Left led off::' + res);
+            LeftLedStat = false;
+            break;
         case 'right led on':
-            var res = robot.ledRight.on()
-            console.log('Right led on::' + res)
-            break
+            var res = robot.ledRight.on();
+            console.log('Right led on::' + res);
+            RightLedStat = true;
+            break;
         case 'right led off':
-            var res = robot.ledRight.off()
-            console.log('Right led off::' + res)
-            break
+            var res = robot.ledRight.off();
+            console.log('Right led off::' + res);
+            RightLedStat = false;
+            break;
         case 'w':
-            var res = robot.motion.forward(false)
-            console.log('Moving forward::' + res)
-            break
+            var res = robot.motion.forward(false);
+            console.log('Moving forward::' + res);
+            robotState = 1;
+            break;
         case 'a':
-            var res = robot.motion.left()
-            console.log('Turning left::' + res)
-            break
+            var res = robot.motion.left();
+            console.log('Turning left::' + res);
+            robotState = 1;
+            break;
         case 'd':
-            var res = robot.motion.right()
-            console.log('Turning right::' + res)
-            break
+            var res = robot.motion.right();
+            console.log('Turning right::' + res);
+            robotState = 1;
+            break;
         case 's':
-            var res = robot.motion.backward(false)
-            console.log('Moving backward::' + res)
-            break
+            var res = robot.motion.backward(false);
+            console.log('Moving backward::' + res);
+            robotState = 1;
+            break;
         case 'stop':
+            var res = robot.motion.stop();
+            console.log('Stop::' + res);
+            robotState = 0;
+            break;
         case 'x':
-            var res = robot.motion.stop()
-            console.log('Stop::' + res)
-            break
-        case 'increase speed':
-        case 't':
-            var res = robot.motion.increaseSpeed()
-            console.log('Increasing speed::' + res)
-            break
-        case 'decrease speed':
-        case 'g':
-            var res = robot.motion.decreaseSpeed()
-            console.log('Decreasing speed::' + res)
-            break
-        case 'voltage':
-        case 'v':
-            var res = robot.board.getVoltage()
-            console.log('Voltage::' + res + ' V')
-            break
-        case 'servo test':
-        case 'b':
-            robot.servo.move(0)
-            console.log('Servo in position 0')
-
-            robot.board.wait(1000)
-            robot.servo.move(180)
-            console.log('Servo in position 180')
-
-            robot.board.wait(1000)
-            robot.servo.move(90)
-            console.log('Servo in position 90')
-            break
-        case 'ultrasonic distance':
-        case 'u':
-            var res = robot.ultraSonicSensor.getDistance()
-            console.log('Ultrasonic Distance::' + res + ' cm')
-            break
-        case 'ir receive':
-            var res = robot.IRReceiverSensor.read()
-            console.log('IR Receiver data::')
-            console.log(res)
-            break
-        case 'l':
-            // TODO
-            break
-        case 'move forward with pid':
-        case 'i':
-            var res = robot.motion.forward(true)
-            console.log('Moving forward::' + res)
-            break
-        case 'move backward with pid':
-        case 'k':
-            var res = robot.motion.backward(true)
-            console.log('Moving backward::' + res)
-            break
-        case 'rotate left':
-        case 'n':
-            var res = robot.motion.leftWithRotation()
-            console.log('Rotating left::' + res)
-            break
-        case 'rotate right':
-        case 'm':
-            var res = robot.motion.rightWithRotation()
-            console.log('Rotating right::' + res)
-            break
-        case 'set encoder targeting':
-        case 'y':
-            var res = robot.encoders.targeting(1, 1, 18)
-            console.log('Setting encoder targeting:1:1:18::' + res)
-            break
+            var res = robot.motion.stop();
+            console.log('Stop::' + res);
+            robotState = 0;
+            break;
     }
+    updateRobot();
     ready = 1;
 }
 
 var batSubscriber = new Subscriber({
-    name: 'James',
+    name: config.node_name,
     subscribesTo: channels
 });
 
@@ -239,41 +182,4 @@ function checkStatus() {
         checkStatus();
     }, 100);
 }
-
-//Check for DB Entry
-function init() {
-    if (ready != 2) {
-        setTimeout(function() {
-            init();
-        }, 100);
-    }
-    dataDetails.findOne({
-            'node_name': config.node_name
-        },
-        function(err, node) {
-            if (err) {
-                return console.log(err);
-            }
-            if (!node) {
-                console.log("Node not found adding...")
-                var newBot = new dataDetails({
-                    node_name: config.node_name,
-                    data: [{}]
-                });
-                newBot.save(function(err, newBot) {
-                    if (err) return console.error(err);
-                    else {
-                        console.log("Added!")
-                        init();
-                    }
-                });
-            }
-            else{
-            robotNode = node;
-            console.log("Node found!");
-            ready = 1;
-            checkStatus();
-            }
-        });
-}
-    init();
+checkStatus();
