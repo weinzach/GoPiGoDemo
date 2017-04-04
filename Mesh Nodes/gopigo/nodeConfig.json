@@ -1,0 +1,6 @@
+{
+    "node_name": "nichols",
+    "robot_type" : "gopigo",
+    "type": "robot",
+    "batman" : false
+}
