@@ -17,10 +17,20 @@ socket.on('message', function(data) {
     if (data.online) {
         if (data.online != status) {
             status = data.online;
-            if (status == 0) {
-                document.getElementById("robotstatus").innerHTML = '<h4 class="center red-text">' + name + ' is Offline</h4>';
+            if (name != "*") {
+                if (status == 0) {
+                    document.getElementById('rlatency').style.display = "none";
+                    document.getElementById('table-container').style.display = "none";
+                    document.getElementById("robotstatus").innerHTML = '<h4 class="center red-text">' + name + ' is Offline</h4>';
+                } else {
+                    document.getElementById('rlatency').style.display = "block";
+                    document.getElementById('table-container').style.display = "block";
+                    document.getElementById("robotstatus").innerHTML = '<h4 class="center green-text">' + name + ' is Online</h4>';
+                }
             } else {
-                document.getElementById("robotstatus").innerHTML = '<h4 class="center green-text">' + name + ' is Online</h4>';
+                document.getElementById('rlatency').style.display = "none";
+                document.getElementById('table-container').style.display = "none";
+                document.getElementById("robotstatus").innerHTML = '<h4 class="center green-text">Connected to ALL Active Robots</h4>';
             }
         }
     }
@@ -28,7 +38,7 @@ socket.on('message', function(data) {
 
 function updateTable(data) {
     var latency = Date.now() - data.data[0].time;
-    var latencyString = "Data Latency: "+latency+"ms";
+    var latencyString = "Data Latency: " + Math.abs(latency) + "ms";
     document.getElementById("rlatency").innerHTML = latencyString;
     document.getElementById("rname").innerHTML = data.name;
     if (data.type == "") {
@@ -45,7 +55,7 @@ function updateTable(data) {
     }
 }
 socket.on('robotData', function(data) {
-    if (data.name == name) {
+    if (data.name == name.toLowerCase()) {
         updateTable(data);
     }
 });
@@ -75,9 +85,15 @@ function changeName() {
     sendMessage('x');
     name = d;
     sendMessage('x');
-    document.getElementById("robo").innerHTML = "Drive " + name;
-    document.getElementById("title").innerHTML = name + " Web Panel";
-    document.getElementById("logo-container").innerHTML = name + " Web Panel";
+    if (name != "*") {
+        document.getElementById("robo").innerHTML = "Drive " + name;
+        document.getElementById("title").innerHTML = name + " Web Panel";
+        document.getElementById("logo-container").innerHTML = name + " Web Panel";
+    } else {
+        document.getElementById("robo").innerHTML = "Drive All";
+        document.getElementById("title").innerHTML = "Web Panel";
+        document.getElementById("logo-container").innerHTML = "Web Panel";
+    }
 }
 
 function servoTest() {

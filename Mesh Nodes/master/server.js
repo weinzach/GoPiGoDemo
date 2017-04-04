@@ -48,8 +48,9 @@ app.get('/', function(req, res) {
 io.on('connection', function(socket) {
     console.log('a user connected');
     socket.on('message', function(msg, socket) {
-        var data = {"name": msg.bot.toLowerCase(),"command": msg.command};
-        if (isOnline(msg.bot, socket) == 1) {
+        var botname = msg.bot.toLowerCase();
+        var data = {"name": botname,"command": msg.command};
+        if (isOnline(botname, socket) == 1) {
             io.emit('message', {
                 online: '1'
             });
@@ -71,7 +72,7 @@ http.listen(3000, function() {
 
 function isOnline(bot, socket) {
     for (i = 0; i < coteList.length; i++) {
-        if (coteList[i] == bot) {
+        if (coteList[i].toLowerCase() == bot) {
             return 1;
         }
     }

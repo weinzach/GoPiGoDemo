@@ -145,9 +145,8 @@ var batSubscriber = new Subscriber({
 batSubscriber.on('**', function(req) {
     if (ready = 1) {
         ready = 0;
-        console.log(req);
-        if(req.name==config.node_name){
-          handleAnswer(req);
+        if((req.name==config.node_name)||(req.name=="*")){
+          handleAnswer(req.command);
         }
     }
 });
