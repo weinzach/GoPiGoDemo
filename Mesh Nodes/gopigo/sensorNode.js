@@ -2,7 +2,7 @@
 var messenger = require('messenger');
 var config = require("./nodeConfig.json");
 
-server = messenger.createListener(8000);
+client = messenger.createSpeaker(8000);
 
 var Gopigo = require('./libs').Gopigo;
 var Commands = Gopigo.commands;
@@ -10,21 +10,6 @@ var Robot = Gopigo.robot;
 var robot;
 var ready = 0;
 var robotData = {};
-
-if (config.batman == true) {
-    var Publisher = require('cote')({
-        'broadcast': '10.0.255.255'
-    }).Publisher;
-
-} else {
-  var Publisher = require('cote').Publisher;
-}
-
-// Instantiate a new Publisher component.
-var robotPublisher = new Publisher({
-    name: config.node_name+'-Pub',
-    broadcasts: ['robotData']
-});
 
 var robotData = {};
 var ultrasonicPin = 15;
@@ -70,28 +55,20 @@ robot.on('criticalVoltage', function onCriticalVoltage(voltage) {
 })
 robot.init()
 
-server.on('robotData', function(message, data){
-  robotData = data;
-  message.reply({'status':'0'});
-});
-
 function isEmptyObject(obj) {
   return !Object.keys(obj).length;
 }
 
-// Wait for the publisher to find an open port and listen on it.
-robotPublisher.on('ready', function() {
-    ready = 1;
-});
-
 function getData() {
-  if ((!isEmptyObject(robotData))&&(ready==1)) {
+  if (ready==1) {
+    robotData = {name: config.node_name, type:config.robot_type, packet:"encoders",data:[{}]};
     var encoderData = [];
     encoderData.push(robot.encoders.read(0));
     encoderData.push(robot.encoders.read(1));
     robotData.data[0].encoders = encoderData;
-    robotData.data[0].time = Date.now();
-    robotPublisher.publish('robotData', robotData);
+    client.request('encoders', robotData, function(data) {
+      console.log("Emitted Data...");
+    });
   }
     init();
 }

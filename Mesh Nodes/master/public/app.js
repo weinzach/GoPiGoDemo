@@ -6,7 +6,6 @@ var name = "Nichols";
 var status = 0
 
 socket.on('connect', function() {
-
     document.getElementById("status").innerHTML = "Socket Status: Connected";
 });
 socket.on('disconnect', function() {
@@ -37,7 +36,7 @@ socket.on('message', function(data) {
 });
 
 function updateTable(data) {
-    var latency = Date.now() - data.data[0].time;
+    var latency = Date.now() - data.time;
     var latencyString = "Data Latency: " + Math.abs(latency) + "ms";
     document.getElementById("rlatency").innerHTML = latencyString;
     document.getElementById("rname").innerHTML = data.name;
@@ -47,11 +46,15 @@ function updateTable(data) {
         document.getElementById("rtype").innerHTML = data.type;
     }
     if (data.type == "gopigo") {
+        if(data.packet=="info"){
         document.getElementById("rstatus").innerHTML = data.data[0].robotState;
         document.getElementById("rrled").innerHTML = data.data[0].rightLed;
         document.getElementById("rlled").innerHTML = data.data[0].leftLed;
+        }
+        if(data.packet=="encoders"){
         document.getElementById("rrencoder").innerHTML = data.data[0].encoders[0];
         document.getElementById("rlencoder").innerHTML = data.data[0].encoders[1];
+        }
     }
 }
 socket.on('robotData', function(data) {

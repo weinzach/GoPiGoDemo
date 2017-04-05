@@ -2,7 +2,7 @@
 var messenger = require('messenger');
 var config = require("./nodeConfig.json");
 
-client = messenger.createSpeaker(8000);
+server = messenger.createListener(8001);
 
 var Gopigo = require('./libs').Gopigo;
 var Commands = Gopigo.commands;
@@ -11,14 +11,6 @@ var robot;
 var ready = 0;
 var robotData = {};
 
-
-if (config.batman == true) {
-    var Subscriber = require('cote')({
-        'broadcast': '10.0.255.255'
-    }).Subscriber;
-} else {
-    var Subscriber = require('cote').Subscriber;
-}
 var ultrasonicPin = 15;
 
 robot = new Robot({
@@ -66,17 +58,16 @@ var LeftLedStat = false;
 var RightLedStat = false;
 var robotState = 0;
 
-function updateRobot() {
+function updateRobot(clientMessage) {
     robotData.name = config.node_name;
     robotData.type = config.robot_type;
+    robotData.packet = 'info';
     var nodeData = {'leftLed': LeftLedStat,'rightLed': RightLedStat, 'robotState': robotState};
     robotData.data = [nodeData];
-    client.request('robotData', robotData, function(data) {
-      console.log("Updating Robot Status...");
-    });
+    clientMessage.reply(robotData);
 }
 
-function handleAnswer(answer) {
+function handleAnswer(answer,clientMessage) {
     var message = ''
     switch (answer) {
         case 'reset':
@@ -133,48 +124,14 @@ function handleAnswer(answer) {
             robotState = 0;
             break;
     }
-    updateRobot();
+    updateRobot(clientMessage);
     ready = 1;
 }
 
-var batSubscriber = new Subscriber({
-    name: config.node_name,
-    subscribesTo: ["drive"]
+server.on('drive', function(message, data){
+  if (ready = 1) {
+      ready = 0;
+      handleAnswer(data.command,message)
+  }
+  message.reply({'status':'0'});
 });
-
-batSubscriber.on('**', function(req) {
-    if (ready = 1) {
-        ready = 0;
-        if((req.name==config.node_name)||(req.name=="*")){
-          handleAnswer(req.command);
-        }
-    }
-});
-
-function checkStatus() {
-    setTimeout(function() {
-        var ids = Object.keys(batSubscriber.discovery.nodes);
-        var coteList = [];
-        let status = 0;
-        for (i = 0; i < ids.length; i++) {
-            coteList.push(batSubscriber.discovery.nodes[ids[i]].advertisement.name);
-        }
-        for (i = 0; i < coteList.length; i++) {
-            if (coteList[i] == "master") {
-                status = 1;
-            }
-        }
-        if (status == 0) {
-            if (ready != 0) {
-                console.log("master is offline");
-                var res = robot.motion.stop();
-                console.log('Stop::' + res);
-            }
-            ready = 0;
-        } else {
-            ready = 1;
-        }
-        checkStatus();
-    }, 100);
-}
-checkStatus();
