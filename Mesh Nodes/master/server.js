@@ -17,8 +17,10 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var ejs = require('ejs');
 var coteList = [];
 app.use(express.static('public'));
+app.set('view engine', 'ejs');
 
 // Instantiate a new Publisher component.
 var randomPublisher = new Publisher({
@@ -42,7 +44,12 @@ robotSubscriber.on('robotData', function(req) {
 });
 
 app.get('/', function(req, res) {
-    res.sendfile('index.html');
+    res.sendfile('views/index.html');
+});
+
+app.get('/lidar/:id', function(req, res) {
+    var id = req.params.id;
+    res.render('lidar', {name:id});
 });
 
 io.on('connection', function(socket) {
