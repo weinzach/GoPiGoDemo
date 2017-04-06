@@ -4,6 +4,7 @@ var lled = 0;
 var rled = 0;
 var name = "Nichols";
 var status = 0
+var lidar = 0;
 
 socket.on('connect', function() {
     document.getElementById("status").innerHTML = "Socket Status: Connected";
@@ -46,20 +47,66 @@ function updateTable(data) {
         document.getElementById("rtype").innerHTML = data.type;
     }
     if (data.type == "gopigo") {
-        if(data.packet=="info"){
-        document.getElementById("rstatus").innerHTML = data.data[0].robotState;
-        document.getElementById("rrled").innerHTML = data.data[0].rightLed;
-        document.getElementById("rlled").innerHTML = data.data[0].leftLed;
+        if (data.packet == "info") {
+            document.getElementById("rstatus").innerHTML = data.data[0].robotState;
+            document.getElementById("rrled").innerHTML = data.data[0].rightLed;
+            document.getElementById("rlled").innerHTML = data.data[0].leftLed;
         }
-        if(data.packet=="encoders"){
-        document.getElementById("rrencoder").innerHTML = data.data[0].encoders[0];
-        document.getElementById("rlencoder").innerHTML = data.data[0].encoders[1];
+        if (data.packet == "encoders") {
+            document.getElementById("rrencoder").innerHTML = data.data[0].encoders[0];
+            document.getElementById("rlencoder").innerHTML = data.data[0].encoders[1];
         }
     }
 }
+
+function updateLidar(data) {
+  var xs = [];
+  var ys = [];
+  var zs = [];
+  for (i = 0; i < data.length; i++) {
+    dataArray = data[i].split(" ");
+    var angle = dataArray[0];
+    var dist = dataArray[1];
+    xs.push(Math.cos(angle)*dist);
+    ys.push(Math.sin(angle)*dist);
+    zs.push(10);
+  }
+
+
+    var trace1 = {
+    	x:xs, y: ys, z: zs,
+    	mode: 'markers',
+    	marker: {
+    		size: 12,
+    		line: {
+    		color: 'rgba(217, 217, 217, 0.14)',
+    		width: 0.5},
+    		opacity: 0.8},
+    	type: 'scatter3d'
+    };
+    var data = [trace1];
+    var layout = {margin: {
+    	l: 0,
+    	r: 0,
+    	b: 0,
+    	t: 0
+      }};
+    if(lidar==0){
+    Plotly.newPlot('myDiv', data, layout);
+    lidar = 1;
+    setTimeout(function(){lidar = 0}, 200);
+    }
+
+}
+
 socket.on('robotData', function(data) {
     if (data.name == name.toLowerCase()) {
-        updateTable(data);
+        if ((data.packet == "encoders") || (data.packet == "info")) {
+            updateTable(data);
+        }
+        if ((data.packet == "lidar")) {
+                      updateLidar(data.data);
+      }
     }
 });
 

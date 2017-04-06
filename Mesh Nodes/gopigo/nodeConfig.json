@@ -1,6 +1,7 @@
 {
     "node_name": "nichols",
     "robot_type" : "gopigo",
+    "lidar_port": "/dev/ttyUSB0",
     "type": "robot",
     "batman" : false
 }

@@ -1,6 +1,7 @@
 //Module dependencies.
 var messenger = require('messenger');
 var config = require("./nodeConfig.json");
+var zerorpc = require("zerorpc");
 
 server = messenger.createListener(8000);
 client = messenger.createSpeaker(8001);
@@ -35,6 +36,18 @@ robotPublisher.on('ready', function() {
     ready = 1;
 });
 
+//Waiting for LiDAR data
+var zerorServer = new zerorpc.Server({
+    sendData: function(data, reply) {
+        var responce = JSON.parse(data.toString("utf8"));
+        responce.time = Date.now();
+        robotPublisher.publish('robotData', responce);
+        reply(null, "{'status':0}");
+    }
+});
+zerorServer.bind("tcp://0.0.0.0:8002");
+
+//Waiting For Encoder Data
 server.on('encoders', function(message, data) {
     if (ready == 1) {
         data.time = Date.now();
@@ -45,6 +58,7 @@ server.on('encoders', function(message, data) {
     });
 });
 
+//Waiting for Driving Commands
 robotSubscriber.on('**', function(req) {
     if ((req.name == config.node_name) || (req.name == "*")) {
         client.request('drive', req, function(data) {
