@@ -24,6 +24,8 @@ requirepackage(){
 requirepackage git
 requirepackage curl
 sudo apt-get install -y build-essential
+sudo apt-get install -y libtool pkg-config build-essential autoconf automake
+sudo apt-get install -y libzmq-dev
 
 #Grab Latest Version of NodeJS
 curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
@@ -38,13 +40,17 @@ sudo bash install.sh
 cd ../Software/Python
 sudo python setup.py install
 
+npm install npm@latest -g
+sudo npm install forever -g
+npm install -g node-gyp
+
 #Install Demo Dependencies
 cd ../../../
 cd $PWD/Mesh\ Nodes/gopigo
-sudo npm install
+npm install
 
 cd ../
 cd $PWD/Mesh\ Nodes/master
-sudo npm install
+npm install
 
 echo "Setup Complete!"

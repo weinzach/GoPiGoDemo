@@ -3,7 +3,8 @@ var active = 0;
 var lled = 0;
 var rled = 0;
 var name = "Nichols";
-var status = 0
+var status = 0;
+var oldName = "";
 var lidar = 0;
 
 socket.on('connect', function() {
@@ -15,7 +16,8 @@ socket.on('disconnect', function() {
 
 socket.on('message', function(data) {
     if (data.online) {
-        if (data.online != status) {
+        if (data.online != status || oldName != name) {
+            oldName = name;
             status = data.online;
             if (name != "*") {
                 if (status == 0) {
